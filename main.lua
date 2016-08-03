@@ -3,9 +3,6 @@ local centerY = display.contentCenterY
 local _W = display.contentWidth
 local _H = display.contentHeight
 
-local movieclip = require( "movieclip" )
-
-local widget = require( "widget" )
 
 local physics = require("physics")
 physics.start()
@@ -15,12 +12,16 @@ display.setStatusBar( display.HiddenStatusBar )
 display.setDefault( "anchorX", 0.0 )	
 display.setDefault( "anchorY", 0.0 )
 
-bitsize=20
-speed=100
+local boingSound = audio.loadSound("boing_wav.wav")
+local knockSound = audio.loadSound("knock_wav.wav")
+local squishSound = audio.loadSound("squish_wav.wav")
 
-horizontal=1
+bitsize=18 --size of the circle
+speed=140 --horizontal speed
+
+horizontal=1 --direction of horizontal motion
 score=-1
-colorvar=1
+colorvar=1 --variable for color change
 gamestage="menu"
 
 function spawnsky()
@@ -36,7 +37,7 @@ function spawnflappy()
 	Flappy=display.newCircle( 50, centerY, bitsize, bitsize)
 	physics.addBody(Flappy, {density= 1, friction= 0, bounce= 1})
 	Flappy:setFillColor ( 0, 0, 0)
-	Flappy.gravityScale=0.9
+	Flappy.gravityScale=1
 	Flappy:setLinearVelocity( speed, -200)
 	Flappy.isFixedRotation = true
 end
@@ -75,6 +76,7 @@ end
 
 
 function endgame()
+	audio.play( squishSound)
 	gamestage="score"
 	display.remove(Flappy)
 	score=-1
@@ -93,22 +95,25 @@ function uppush ( event )
 	if event.phase=="began" and gamestage=="begun" then
 		local lvx, lvy =Flappy:getLinearVelocity()
 		Flappy:setLinearVelocity( lvx, -230)
+		audio.play( knockSound)
 	end
 end
 
 function rebound()
 	if gamestage=="begun" then
-		if Flappy.x>(2*centerX)-bitsize then
+		if Flappy.x>(2*centerX)-38 then
 			horizontal=1
 			timer.performWithDelay( 20, spawnleft, 1)
 			colorchange()
 			Flappy:setLinearVelocity( -speed)
+			audio.play( boingSound)
 		end
 		if Flappy.x<0 then
 			horizontal=-1
 			timer.performWithDelay( 20, spawnright, 1)
 			colorchange()
 			Flappy:setLinearVelocity( speed)
+			audio.play( boingSound)
 		end
 	end
 end
@@ -142,7 +147,7 @@ edgeB={}
 edgeT={}
 
 function spawnright()
-	local spaceR=math.random(1,9)
+	local spaceR=math.random(1,8)
 	for i= 1,10 do
 		display.remove(edgeL[i])
 		if i==spaceR or i==spaceR+1 then
@@ -156,7 +161,7 @@ function spawnright()
 end
 
 function spawnleft()
-	local spaceL=math.random(1,9)
+	local spaceL=math.random(1,8)
 	for i= 1,10 do
 		display.remove(edgeR[i])
 		if i==spaceL or i==spaceL+1 then
